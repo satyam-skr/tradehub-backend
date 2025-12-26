@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ORDERTYPE {
+  BUY
+  SELL
+}
+
+enum ORDERSTATUS{
+  OPEN
+  PARTIAL
+  FILLED
+  CANCELLED
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  password String
+  wallet Wallet?
+  orders Order[]
+  createdAt DateTime @default(now())
+  updadedAt DateTime @updatedAt
+}
+
+model Wallet {
+  id String @id @default(uuid())
+  userId String @unique
+  balance Decimal @default(0)
+  lockedBalance Decimal @default(0)
+  createdAt DateTime @default(now())
+  updadedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Stock {
+  id String @id @default(uuid())
+  symbol String @unique
+  name String
+  exchange Decimal
+}
+
+model Order {
+  id String @id @default(uuid())
+  userId String
+  symbol String
+  type ORDERTYPE
+  price Decimal
+  quantity Int
+  filled_quantity Int
+  status ORDERSTATUS
+  createdAt DateTime @default(now())
+  updadedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
