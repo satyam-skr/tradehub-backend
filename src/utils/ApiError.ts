@@ -2,12 +2,12 @@ class ApiError extends Error {
     statusCode: number;
     data: any;           // you can type this more strictly if you know the shape
     success: boolean;
-    errors: any[];       // array of errors
+    errors: Record<string, string[]> | string[]       // array of errors
 
     constructor(
         statusCode: number,
         message = "Something went wrong",
-        errors: any[] = [],
+        errors: Record<string, string[]> | string[] = [],
         stack?: string
     ) {
         super(message)

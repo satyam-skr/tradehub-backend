@@ -1,15 +1,12 @@
 import app from './app';
-
-
-
-const PORT = Number(process.env.PORT) || 4000;
+import {env} from './config/env'
 
 const start = async () => {
     try {
         await app.listen({
-            port: PORT
-        }),
-        console.log(`Server running on port ${PORT}`);
+            port: env.PORT
+        });
+        console.log(`Server running on port ${env.PORT}`);
     } catch (err) {
         app.log.error(err, "error while starting app");
         process.exit(1);

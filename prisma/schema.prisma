@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -32,7 +32,7 @@ model User {
   wallet Wallet?
   orders Order[]
   createdAt DateTime @default(now())
-  updadedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 }
 
 model Wallet {
@@ -41,7 +41,7 @@ model Wallet {
   balance Decimal @default(0)
   lockedBalance Decimal @default(0)
   createdAt DateTime @default(now())
-  updadedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -63,7 +63,7 @@ model Order {
   filled_quantity Int
   status ORDERSTATUS
   createdAt DateTime @default(now())
-  updadedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 }
