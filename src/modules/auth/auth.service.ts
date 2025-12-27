@@ -1,5 +1,7 @@
 import { prisma } from "../../db/prisma";
 import bcrypt from "bcrypt";
+import { CreateUserInput, LoginType } from "../../validators/auth.schema";
+import { ApiError } from "../../utils/ApiError";
 
 const SALT_ROUNDS = 10;
 
@@ -10,14 +12,7 @@ const SAFE_USER_SELECT = {
   updatedAt: true,
 };
 
-interface CreateUserInput {
-  email: string;
-  password: string;
-}
 
-interface UserQuery {
-    email? : string;
-}
 
 const createUserService = async (data: CreateUserInput) => {
   const { email, password } = data;
@@ -41,6 +36,50 @@ const createUserService = async (data: CreateUserInput) => {
   return createdUser;
 };
 
+const getUserByEmailService = async (email: string) => {
+  const user = await prisma.user.findFirst({
+    where: { email },
+    select: SAFE_USER_SELECT
+  });
+  if (!user) throw new ApiError(
+    400,
+    "user not found"
+  );
+
+  return user;
+}
+
+const loginUserService = async (data: LoginType) => {
+  const {email, password} = data;
+  const user = await prisma.user.findFirst({
+    where: {email}
+  });
+
+  if(!user) throw new ApiError(
+    404,
+    "user not found :/"
+  );
+
+  const isPasswordCorrect = await bcrypt.compare(
+    password,
+    user.password
+  )
+
+  if(!isPasswordCorrect){
+    throw new ApiError(
+      400,
+      "wrong password >_<"
+    )
+  }
+
+  return {
+    id: user.id,
+    email: user.email
+  }
+}
+
 export {
-    createUserService,
+  createUserService,
+  getUserByEmailService,
+  loginUserService
 } 

@@ -21,3 +21,32 @@
 //     refreshJwtVerify: <T = unknown>() => Promise<T>;
 //   }
 // }
+
+import "fastify";
+
+
+declare module "fastify" {
+  interface FastifyInstance {
+    authenticate: (req: any, reply: any) => Promise<void>;
+  }
+
+  interface FastifyRequest {
+    user?: {
+      userId: string;
+      email: string;
+    };
+  }
+}
+
+declare module "@fastify/jwt" {
+  interface FastifyJWT {
+    payload: {
+      userId: string;
+      email: string;
+    };
+    user: {
+      userId: string;
+      email: string;
+    };
+  }
+}

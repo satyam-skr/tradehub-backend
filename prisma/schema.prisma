@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -13,12 +7,17 @@ datasource db {
   provider = "postgresql"
 }
 
-enum ORDERTYPE {
+enum OrderSide {
   BUY
   SELL
 }
 
-enum ORDERSTATUS{
+enum OrderType {
+  MARKET
+  LIMIT
+}
+
+enum OrderStatus {
   OPEN
   PARTIAL
   FILLED
@@ -26,44 +25,45 @@ enum ORDERSTATUS{
 }
 
 model User {
-  id String @id @default(uuid())
-  email String @unique
-  password String
-  wallet Wallet?
-  orders Order[]
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  wallet    Wallet?
+  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Wallet {
-  id String @id @default(uuid())
-  userId String @unique
-  balance Decimal @default(0)
-  lockedBalance Decimal @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  balance       Decimal  @default(0)
+  lockedBalance Decimal  @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model Stock {
-  id String @id @default(uuid())
-  symbol String @unique
-  name String
+  id       String  @id @default(uuid())
+  symbol   String  @unique
+  name     String
   exchange Decimal
 }
 
 model Order {
-  id String @id @default(uuid())
-  userId String
-  symbol String
-  type ORDERTYPE
-  price Decimal
-  quantity Int
-  filled_quantity Int
-  status ORDERSTATUS
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String      @id @default(uuid())
+  userId         String
+  symbol         String
+  side           OrderSide
+  type           OrderType
+  price          Decimal?
+  quantity       Int
+  filledQuantity Int         @default(0)
+  status         OrderStatus @default(OPEN)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 }

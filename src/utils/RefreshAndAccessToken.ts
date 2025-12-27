@@ -2,9 +2,18 @@ import { FastifyReply } from "fastify";
 
 export const createAccessToken = async (
   reply: FastifyReply,
-  payload: object
-) =>
-  await reply.jwtSign(payload);
+  payload: any
+) => {
+
+  const accessToken = await reply.jwtSign(payload);
+  reply.setCookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+  });
+  return accessToken;
+}
 
 // export const createRefreshToken = async (
 //   reply: FastifyReply,
