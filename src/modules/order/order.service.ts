@@ -3,6 +3,7 @@ import { ApiError } from "../../utils/ApiError";
 import { OrderCreateType } from "../../validators/order.schema";
 import { Decimal } from "@prisma/client/runtime/index-browser";
 import { OrderSide, OrderType } from "../../generated/prisma";
+import { matchBuyOrder, matchSellOrder } from "../matchEngine/matchEngine";
 
 
 const placeOrderService = async (data: OrderCreateType) => {
@@ -15,7 +16,7 @@ const placeOrderService = async (data: OrderCreateType) => {
         quantity
     } = data;
 
-    if (type == "LIMIT") {
+    if (type == "LIMIT" && side == "BUY") {
         const requiredAmount = price! * quantity;
 
         const result = await prisma.$transaction(async (tx) => {
@@ -58,6 +59,63 @@ const placeOrderService = async (data: OrderCreateType) => {
                     side: OrderSide[side],
                     type: OrderType[type],
                     price: new Decimal(price!),
+                    quantity,
+                    filledQuantity: 0,
+                    status: "OPEN"
+                }
+            });
+
+            return order;
+        });
+
+        await matchBuyOrder(result.id);
+
+        return await prisma.order.findUnique({
+            where: {
+                id: result.id
+            }
+        });
+
+
+    }
+
+    if (type == "LIMIT" && side == "SELL") {
+        // verify is the user actually owns the stock or not
+        const result = await prisma.$transaction(async (tx) => {
+            const holding = await tx.stockHolding.findUnique({
+                where: {
+                    userId_symbol: {
+                        userId,
+                        symbol
+                    }
+                }
+            });
+
+            if (!holding || (holding.quantity - holding.locked) < quantity) {
+                throw new ApiError(400, "Insufficient stock holdings");
+            }
+
+            // Lock the stocks
+            await tx.stockHolding.update({
+                where: {
+                    userId_symbol: {
+                        userId,
+                        symbol
+                    }
+                },
+                data: {
+                    locked: { increment: quantity }
+                }
+            });
+
+
+            const order = await tx.order.create({
+                data: {
+                    userId,
+                    symbol,
+                    side: OrderSide[side],
+                    type: OrderType[type],
+                    price: new Decimal(price!),
                     quantity
                 }
             })
@@ -65,7 +123,11 @@ const placeOrderService = async (data: OrderCreateType) => {
             return order;
         });
 
-        return result;
+        await matchSellOrder(result.id);
+
+        return await prisma.order.findUnique({
+            where: { id: result.id }
+        });
     }
 
 }

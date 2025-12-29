@@ -25,13 +25,14 @@ enum OrderStatus {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  wallet    Wallet?
-  orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  wallet        Wallet?
+  orders        Order[]
+  stockHoldings StockHolding[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Wallet {
@@ -52,6 +53,20 @@ model Stock {
   exchange Decimal
 }
 
+model StockHolding {
+  id        String   @id @default(uuid())
+  userId    String
+  symbol    String
+  quantity  Int      @default(0)
+  locked    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, symbol])
+}
+
 model Order {
   id             String      @id @default(uuid())
   userId         String
@@ -66,4 +81,20 @@ model Order {
   updatedAt      DateTime    @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+
+  buyTrades  Trade[] @relation("BuyOrder")
+  sellTrades Trade[] @relation("SellOrder")
+}
+
+model Trade {
+  id          String   @id @default(uuid())
+  buyOrderId  String
+  sellOrderId String
+  symbol      String
+  price       Decimal
+  quantity    Int
+  executedAt  DateTime @default(now())
+
+  buyOrder  Order @relation("BuyOrder", fields: [buyOrderId], references: [id])
+  sellOrder Order @relation("SellOrder", fields: [sellOrderId], references: [id])
 }

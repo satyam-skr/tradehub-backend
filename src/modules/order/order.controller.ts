@@ -21,7 +21,7 @@ const placeOrder = async (
     }
 
     const data = parsed.data;
-    if(!req.user?.userId) {
+    if (!req.user?.userId) {
         throw new ApiError(401, "you are Unauthorized");
     }
     const userId = req.user.userId;
@@ -31,7 +31,7 @@ const placeOrder = async (
         userId
     } as OrderCreateType);
 
-    if(!order) {
+    if (!order) {
         throw new ApiError(
             500,
             "error while creating order"

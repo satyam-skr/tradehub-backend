@@ -12,6 +12,36 @@ const SAFE_USER_SELECT = {
   updatedAt: true,
 };
 
+const initialMockStocks = [
+  {
+    symbol: "AAPL",
+    quantity: 10
+  },
+  {
+    symbol: "GOOGL",
+    quantity: 10
+  },
+  {
+    symbol: "TSLA",
+    quantity: 10
+  },
+  {
+    symbol: "AMZN",
+    quantity: 10
+  },
+  {
+    symbol: "MSFT",
+    quantity: 10
+  },
+  {
+    symbol: "NVDA",
+    quantity: 10
+  },
+  {
+    symbol: "META",
+    quantity: 10
+  },
+];
 
 
 const createUserService = async (data: CreateUserInput) => {
@@ -29,6 +59,11 @@ const createUserService = async (data: CreateUserInput) => {
           lockedBalance: 0,
         },
       },
+      stockHoldings: {
+        createMany: {
+          data: initialMockStocks
+        }
+      }
     },
     select: SAFE_USER_SELECT,
   });
@@ -50,12 +85,12 @@ const getUserByEmailService = async (email: string) => {
 }
 
 const loginUserService = async (data: LoginType) => {
-  const {email, password} = data;
+  const { email, password } = data;
   const user = await prisma.user.findFirst({
-    where: {email}
+    where: { email }
   });
 
-  if(!user) throw new ApiError(
+  if (!user) throw new ApiError(
     404,
     "user not found :/"
   );
@@ -65,7 +100,7 @@ const loginUserService = async (data: LoginType) => {
     user.password
   )
 
-  if(!isPasswordCorrect){
+  if (!isPasswordCorrect) {
     throw new ApiError(
       400,
       "wrong password >_<"
