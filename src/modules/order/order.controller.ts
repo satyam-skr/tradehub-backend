@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { OrderCreateType, PlaceOrderType, placeOrderSchema } from "../../validators/order.schema";
 import { ApiError } from "../../utils/ApiError";
-import { placeOrderService } from "./order.service";
+import { placeOrderService, getMyOrdersService } from "./order.service";
 import { ApiResponse } from "../../utils/ApiResponse";
 
 const placeOrder = async (
@@ -48,6 +48,27 @@ const placeOrder = async (
 
 }
 
+const getMyOrders = async (
+    req: FastifyRequest,
+    rep: FastifyReply
+) => {
+    const userId = req.user.userId;
+    if(!userId){
+        throw new ApiError(400, "unauthenticated")
+    }
+
+    const orders = await getMyOrdersService(userId);
+
+    return rep
+        .status(200)
+        .send(new ApiResponse(
+            200,
+            {orders},
+            "orders fetched successfully"
+        ));
+}
+
 export {
     placeOrder,
+    getMyOrders
 }

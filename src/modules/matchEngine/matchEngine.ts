@@ -96,11 +96,29 @@ const matchBuyOrder = async (orderId: string) => {
           }
         },
         data: {
-          quantity: { decrement: tradedQty },
           locked: { decrement: tradedQty }
         }
       });
 
+      const initialBuyerHolding = await tx.stockHolding.findUnique({
+        where: {
+          userId_symbol: {
+            userId: buyOrder.userId,
+            symbol: buyOrder.symbol
+          }
+        }
+      });
+
+      let newBuyersAvgPrice;
+      if (initialBuyerHolding) {
+        const qty = initialBuyerHolding.quantity + tradedQty;
+        const price = initialBuyerHolding.avgPrice.add(tradePrice);
+        newBuyersAvgPrice = price.toNumber() / qty;
+      }
+      else {
+        newBuyersAvgPrice = tradePrice.toNumber() / tradedQty;
+      }
+      
       //update buyer's holdings
       const buyerHolding = await tx.stockHolding.upsert({
         where: {
@@ -110,12 +128,14 @@ const matchBuyOrder = async (orderId: string) => {
           }
         },
         update: {
-          quantity: { increment: tradedQty }
+          quantity: { increment: tradedQty },
+          avgPrice: newBuyersAvgPrice
         },
         create: {
           userId: buyOrder.userId,
           symbol: buyOrder.symbol,
-          quantity: tradedQty
+          quantity: tradedQty,
+          avgPrice: newBuyersAvgPrice
         }
       });
 

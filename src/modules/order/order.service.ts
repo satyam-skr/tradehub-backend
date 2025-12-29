@@ -91,7 +91,7 @@ const placeOrderService = async (data: OrderCreateType) => {
                 }
             });
 
-            if (!holding || (holding.quantity - holding.locked) < quantity) {
+            if (!holding || (holding.quantity) < quantity) {
                 throw new ApiError(400, "Insufficient stock holdings");
             }
 
@@ -104,6 +104,7 @@ const placeOrderService = async (data: OrderCreateType) => {
                     }
                 },
                 data: {
+                    quantity: {decrement: quantity},
                     locked: { increment: quantity }
                 }
             });
@@ -132,6 +133,22 @@ const placeOrderService = async (data: OrderCreateType) => {
 
 }
 
+const getMyOrdersService = async (userId: string) => {
+    try {
+        const orders  = await prisma.order.findMany({
+            where: {
+                userId,
+                status : { not : "FILLED" }
+            }
+        })
+        return orders;
+    } catch (error) {
+        throw new ApiError(500, "Error while fetching orders" )
+    }
+}
+
+
 export {
     placeOrderService,
+    getMyOrdersService
 }

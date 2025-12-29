@@ -36,13 +36,13 @@ app.register(authenticatePlugin);
 //routes import
 import authRoutes from "./modules/auth/auth.route";
 import orderRoutes from "./modules/order/order.route";
+import portfolioRoutes from "./modules/portfolio/portfolio.route";
 
 
 //routes use
 app.register(authRoutes, { prefix: "/api/v1/auth" });
-app.register(orderRoutes, {
-  prefix: "/api/v1/order",
-})
+app.register(orderRoutes, { prefix: "/api/v1/order", })
+app.register(portfolioRoutes, { prefix: "api/v1/portfolio" })
 
 
 export default app;

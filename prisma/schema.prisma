@@ -59,6 +59,7 @@ model StockHolding {
   symbol    String
   quantity  Int      @default(0)
   locked    Int      @default(0)
+  avgPrice  Decimal  @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
