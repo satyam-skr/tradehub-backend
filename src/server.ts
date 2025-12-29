@@ -1,6 +1,8 @@
 import app from './app';
 import {env} from './config/env'
+import { startMarketSimulator } from "./modules/market/simulator";
 
+startMarketSimulator();
 const start = async () => {
     try {
         await app.listen({
