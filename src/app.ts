@@ -41,6 +41,7 @@ import authRoutes from "./modules/auth/auth.route";
 import orderRoutes from "./modules/order/order.route";
 import portfolioRoutes from "./modules/portfolio/portfolio.route";
 import marketRoutes from "./modules/market/market.routes";
+import chatbotRoutes from "./modules/chatbot/chatbot.route"
 
 
 //routes use
@@ -48,6 +49,7 @@ app.register(authRoutes, { prefix: "/api/v1/auth" });
 app.register(orderRoutes, { prefix: "/api/v1/order", })
 app.register(portfolioRoutes, { prefix: "api/v1/portfolio" })
 app.register(marketRoutes, { prefix: "/api/v1/market" });
+app.register(chatbotRoutes, { prefix: "api/v1/stocky" });
 
 
 

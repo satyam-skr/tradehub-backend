@@ -13,6 +13,7 @@ const envSchema = z.object({
     .transform((val) => parseInt(val, 10))
     .default(4000), // default port if not set
   DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL"),
+  GEMINI_API_KEY: z.string(),
 });
 
 // Parse and validate process.env
