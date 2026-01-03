@@ -4,6 +4,9 @@ import cors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
 import { env } from "./config/env";
 import authenticatePlugin from "./plugins/authenticate";
+import websocket from "@fastify/websocket";
+import { marketWs } from "./modules/market/market.ws";
+
 
 
 const app = Fastify({ logger: true });
@@ -13,6 +16,9 @@ app.register(cors, {
   credentials: true,
 });
 app.register(fastifyCookie);
+app.register(websocket);
+marketWs(app);
+
 app.register(jwt, {
   secret: env.ACCESS_TOKEN_SECRET,
   cookie: {
