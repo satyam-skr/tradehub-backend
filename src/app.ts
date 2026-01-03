@@ -8,7 +8,10 @@ import authenticatePlugin from "./plugins/authenticate";
 
 const app = Fastify({ logger: true });
 
-app.register(cors);
+app.register(cors, {
+  origin: (origin, cb) => cb(null, true),
+  credentials: true,
+});
 app.register(fastifyCookie);
 app.register(jwt, {
   secret: env.ACCESS_TOKEN_SECRET,

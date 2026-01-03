@@ -104,7 +104,7 @@ const placeOrderService = async (data: OrderCreateType) => {
                     }
                 },
                 data: {
-                    quantity: {decrement: quantity},
+                    quantity: { decrement: quantity },
                     locked: { increment: quantity }
                 }
             });
@@ -135,20 +135,119 @@ const placeOrderService = async (data: OrderCreateType) => {
 
 const getMyOrdersService = async (userId: string) => {
     try {
-        const orders  = await prisma.order.findMany({
+        const orders = await prisma.order.findMany({
             where: {
                 userId,
-                status : { not : "FILLED" }
+                status: { in: ["OPEN", "PARTIAL"] }
             }
         })
         return orders;
     } catch (error) {
-        throw new ApiError(500, "Error while fetching orders" )
+        throw new ApiError(500, "Error while fetching orders")
     }
+}
+
+
+const deleteOrderByIdService = async (orderId: string) => {
+    try {
+        const result = await prisma.$transaction(async (tx) => {
+            const order = await tx.order.findUnique({
+                where: { id: orderId }
+            });
+            if (!order) throw new ApiError(404, "order not found")
+
+            if (order.filledQuantity == order.quantity) {
+                throw new ApiError(400, "sry order is completed and cant be deleted")
+            }
+
+            if (order.status === "CANCELLED") {
+                throw new ApiError(400, "order is already cancelled")
+            }
+
+            const remainingQty = order.quantity - order.filledQuantity;
+            const user = await tx.user.findUnique({
+                where: { id: order.userId }
+            });
+            if (!user) throw new ApiError(404, "user not found");
+
+            if (order.side == "SELL") {
+                await tx.stockHolding.update({
+                    where: {
+                        userId_symbol: {
+                            userId: user.id,
+                            symbol: order.symbol
+                        }
+                    },
+                    data: {
+                        locked: { decrement: remainingQty },
+                        quantity: { increment: remainingQty }
+                    }
+                })
+            }
+            else if (order.side == "BUY") {
+                const price = order.price!.mul(remainingQty);
+                await tx.wallet.update({
+                    where: { userId: user.id },
+                    data: {
+                        lockedBalance: { decrement: price },
+                        balance: { increment: price }
+                    }
+                })
+            }
+
+            await tx.order.update({
+                where: { id: orderId },
+                data: {
+                    status: "CANCELLED"
+                }
+            });
+        })
+
+    } catch (error) {
+        throw new ApiError(500, "Error while fetching orders")
+    }
+}
+
+
+const getOrderBookService = async (symbol: string) => {
+    const orders = await prisma.order.findMany({
+        where: {
+            symbol,
+            status: { in: ["OPEN", "PARTIAL"] }
+        }
+    });
+
+    const buyBook: Record<string, number> = {};
+    const sellBook: Record<string, number> = {};
+
+    for (const o of orders) {
+        const remaining = o.quantity - o.filledQuantity;
+        if (remaining <= 0) continue;
+
+        const price = o.price!.toString();
+
+        if (o.side === "BUY") {
+            buyBook[price] = (buyBook[price] || 0) + remaining;
+        } else {
+            sellBook[price] = (sellBook[price] || 0) + remaining;
+        }
+    }
+
+    const bids = Object.entries(buyBook)
+        .map(([price, qty]) => ({ price: Number(price), quantity: qty }))
+        .sort((a, b) => b.price - a.price);
+
+    const asks = Object.entries(sellBook)
+        .map(([price, qty]) => ({ price: Number(price), quantity: qty }))
+        .sort((a, b) => a.price - b.price);
+
+    return { symbol, bids, asks };
 }
 
 
 export {
     placeOrderService,
-    getMyOrdersService
+    getMyOrdersService,
+    deleteOrderByIdService,
+    getOrderBookService
 }

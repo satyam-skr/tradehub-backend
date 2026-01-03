@@ -17,8 +17,9 @@ const matchBuyOrder = async (orderId: string) => {
       where: {
         symbol: buyOrder.symbol,
         side: "SELL",
-        status: "OPEN",
-        price: { lte: buyOrder.price! }
+        status: {in: ["OPEN", "PARTIAL"]},
+        price: { lte: buyOrder.price! },
+        userId: {not:buyOrder.userId}
       },
       orderBy: [
         { price: "asc" },   // cheapestFirst
@@ -111,9 +112,12 @@ const matchBuyOrder = async (orderId: string) => {
 
       let newBuyersAvgPrice;
       if (initialBuyerHolding) {
-        const qty = initialBuyerHolding.quantity + tradedQty;
-        const price = initialBuyerHolding.avgPrice.add(tradePrice);
-        newBuyersAvgPrice = price.toNumber() / qty;
+        const oldQty = initialBuyerHolding.quantity;
+        const oldCost = initialBuyerHolding.avgPrice.mul(oldQty);
+        const newCost = new Prisma.Decimal(tradePrice).mul(tradedQty);
+
+        const totalQty = oldQty + tradedQty;
+        newBuyersAvgPrice = oldCost.add(newCost).div(totalQty);
       }
       else {
         newBuyersAvgPrice = tradePrice.toNumber() / tradedQty;
@@ -166,7 +170,8 @@ const matchSellOrder = async (orderId: string) => {
         symbol: sellOrder.symbol,
         side: "BUY",
         status: "OPEN",
-        price: { gte: sellOrder.price! }
+        price: { gte: sellOrder.price! },
+        userId: { not: sellOrder.userId }
       },
       orderBy: [
         { price: "desc" }, // highest price first
@@ -197,7 +202,7 @@ const matchSellOrder = async (orderId: string) => {
         where: { id: sellOrder.id },
         data: {
           filledQuantity: { increment: tradedQty },
-          status: (sellOrder.filledQuantity + tradedQty) === sellOrder.quantity
+          status: (tradedQty === remainingQty)
             ? "FILLED"
             : "PARTIAL"
         }
@@ -208,7 +213,7 @@ const matchSellOrder = async (orderId: string) => {
         where: { id: buy.id },
         data: {
           filledQuantity: { increment: tradedQty },
-          status: (buy.filledQuantity + tradedQty) === buy.quantity
+          status: (tradedQty === remainingQty)
             ? "FILLED"
             : "PARTIAL"
         }
@@ -217,15 +222,10 @@ const matchSellOrder = async (orderId: string) => {
       //4. transfer funds from buyer to seller
       const totalCost = new Prisma.Decimal(tradedPrice).mul(tradedQty);
 
-      //calculate extra profit by seller
-      const priceDifference = buy.price!.minus(tradedPrice);
-      const extraProfit = priceDifference.mul(tradedQty);
-      const totalProfitBySeller = extraProfit.add(totalCost);
-
       await tx.wallet.update({
         where: { userId: sellOrder.userId },
         data: {
-          balance: { increment: totalProfitBySeller }
+          balance: { increment: totalCost }
         }
       });
 

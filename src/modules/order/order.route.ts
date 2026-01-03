@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { placeOrder, getMyOrders } from "./order.controller"
+import { placeOrder, getMyOrders, deleteOrderById, getOrderBook } from "./order.controller"
 
 export async function orderRoutes(app: FastifyInstance) {
 
@@ -10,6 +10,13 @@ export async function orderRoutes(app: FastifyInstance) {
   app.get("/", {
     onRequest: [app.authenticate]
   }, getMyOrders)
+
+  app.delete("/:orderId", {
+    onRequest: [app.authenticate]
+  }, deleteOrderById)
+
+  app.get("/orderbook/:ticker", {
+  }, getOrderBook)
 }
 
 export default orderRoutes

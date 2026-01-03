@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { OrderCreateType, PlaceOrderType, placeOrderSchema } from "../../validators/order.schema";
 import { ApiError } from "../../utils/ApiError";
-import { placeOrderService, getMyOrdersService } from "./order.service";
+import { placeOrderService, getMyOrdersService, deleteOrderByIdService, getOrderBookService } from "./order.service";
 import { ApiResponse } from "../../utils/ApiResponse";
 
 const placeOrder = async (
@@ -68,7 +68,59 @@ const getMyOrders = async (
         ));
 }
 
+const deleteOrderById = async (
+    req: FastifyRequest,
+    rep: FastifyReply
+) => {
+    const userId = req.user.userId;
+    if(!userId){
+        throw new ApiError(400, "unauthenticated")
+    }
+
+    try {
+        const {orderId} = req.params as any;
+        await deleteOrderByIdService(orderId);
+    
+    
+        return rep
+            .status(200)
+            .send(new ApiResponse(
+                200,
+                {},
+                "orders deleted successfully"
+            ));
+    } catch (error) {
+        return rep
+            .status(500)
+            .send(new ApiResponse(
+                500,
+                {},
+                "orders delete error"
+            ));
+    }
+}
+
+const getOrderBook = async (
+    req: FastifyRequest,
+    rep: FastifyReply
+) => {
+    const {ticker} = req.params as any;
+
+    const orderBook = await getOrderBookService(ticker);
+
+    return rep
+        .status(200)
+        .send(new ApiResponse(
+            200,
+            {orderBook},
+            "orderBook fetched successfully"
+        ));
+}
+
+
 export {
     placeOrder,
-    getMyOrders
+    getMyOrders,
+    deleteOrderById,
+    getOrderBook
 }
