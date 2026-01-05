@@ -3,7 +3,7 @@ import { ApiError } from "../../utils/ApiError";
 import { OrderCreateType } from "../../validators/order.schema";
 import { Decimal } from "@prisma/client/runtime/index-browser";
 import { OrderSide, OrderType } from "../../generated/prisma";
-import { matchBuyOrder, matchSellOrder } from "../matchEngine/matchEngine";
+import { matchBuyOrder, matchSellOrder, matchMarketBuy, matchMarketSell } from "../matchEngine/matchEngine";
 
 
 const placeOrderService = async (data: OrderCreateType) => {
@@ -131,6 +131,93 @@ const placeOrderService = async (data: OrderCreateType) => {
         });
     }
 
+    if (type === "MARKET" && side === "BUY") {
+        const result = await prisma.$transaction(async (tx) => {
+            const wallet = await tx.wallet.findUnique({
+                where: { userId }
+            });
+
+            if (!wallet) {
+                throw new ApiError(
+                    404,
+                    "Wallet not found"
+                )
+            }
+
+            if (wallet.balance.toNumber() < 0) {
+                throw new ApiError(
+                    400,
+                    "Insufficient Balance"
+                )
+            }
+
+            // Create order with no price
+            const order = await tx.order.create({
+                data: {
+                    userId,
+                    symbol,
+                    side,
+                    type,
+                    quantity,
+                    filledQuantity: 0,
+                    status: "OPEN"
+                }
+            });
+
+            return order;
+        });
+
+        // Match immediately
+        await matchMarketBuy(result.id);
+        return result;
+    }
+
+    if (type === "MARKET" && side === "SELL") {
+        const result = await prisma.$transaction(async (tx) => {
+            const holding = await tx.stockHolding.findUnique({
+                where: {
+                    userId_symbol: {
+                        userId,
+                        symbol
+                    }
+                }
+            });
+            if (!holding || (holding.quantity) < quantity) {
+                throw new ApiError(400, "Insufficient stock holdings");
+            }
+
+            await tx.stockHolding.update({
+                where: {
+                    userId_symbol: {
+                        userId,
+                        symbol
+                    }
+                },
+                data: {
+                    quantity: { decrement: quantity },
+                    locked: { increment: quantity }
+                }
+            });
+
+            const order = await tx.order.create({
+                data: {
+                    userId,
+                    symbol,
+                    side: OrderSide[side],
+                    type: OrderType[type],
+                    quantity
+                }
+            })
+            return order;
+        });
+
+        await matchMarketSell(result.id);
+
+        return await prisma.order.findUnique({
+            where: { id: result.id }
+        });
+
+    }
 }
 
 const getMyOrdersService = async (userId: string) => {
