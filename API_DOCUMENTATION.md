@@ -7,7 +7,7 @@ A comprehensive RESTful API for a trading platform with authentication, order ma
 Once the server is running, access the interactive Swagger UI documentation at:
 
 ```
-http://localhost:3000/docs
+http://localhost:4000/docs
 ```
 
 The Swagger UI provides:
@@ -564,7 +564,7 @@ PORT=3000
 ## 🧪 Testing the API
 
 ### Using Swagger UI
-The easiest way to test the API is through the Swagger UI at `http://localhost:3000/docs`.
+The easiest way to test the API is through the Swagger UI at `http://localhost:4000/docs`.
 
 1. Visit the Swagger docs
 2. Click "Authorize" button
@@ -575,21 +575,21 @@ The easiest way to test the API is through the Swagger UI at `http://localhost:3
 
 **Signup:**
 ```bash
-curl -X POST http://localhost:3000/api/v1/auth/signup \
+curl -X POST http://localhost:4000/api/v1/auth/signup \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password123"}'
 ```
 
 **Login:**
 ```bash
-curl -X POST http://localhost:3000/api/v1/auth/login \
+curl -X POST http://localhost:4000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password123"}'
 ```
 
 **Place Order (with token):**
 ```bash
-curl -X POST http://localhost:3000/api/v1/order/create \
+curl -X POST http://localhost:4000/api/v1/order/create \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
@@ -667,7 +667,7 @@ GET /api/v1/portfolio/
 
 ## 📚 Additional Resources
 
-- **Swagger Documentation**: `http://localhost:3000/docs`
+- **Swagger Documentation**: `http://localhost:4000/docs`
 - **Prisma Studio**: Run `npm run prisma:studio` to open database GUI
 - **WebSocket**: Real-time market data available via WebSocket connection
 
@@ -676,7 +676,7 @@ GET /api/v1/portfolio/
 ## 🤝 Support
 
 For issues or questions:
-- Email: support@tradingplatform.com
+- Email: bt23cse082@iiitn.ac.in
 - Check the interactive Swagger docs for real-time testing
 
 ---

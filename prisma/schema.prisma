@@ -99,3 +99,23 @@ model Trade {
   buyOrder  Order @relation("BuyOrder", fields: [buyOrderId], references: [id])
   sellOrder Order @relation("SellOrder", fields: [sellOrderId], references: [id])
 }
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IdempotencyKey {
+  key       String   @id
+  userId    String
+  endpoint  String
+  response  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
