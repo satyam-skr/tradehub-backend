@@ -4,11 +4,11 @@ import { priceStore } from "./priceStore";
 const clients = new Set<any>();
 
 export async function marketWs(app: FastifyInstance) {
-  app.get("/ws/market", { websocket: true }, (conn) => {
-    clients.add(conn.socket);
+  app.get("/ws/market", { websocket: true }, (connection, req) => {
+    clients.add(connection);
 
-    conn.socket.on("close", () => {
-      clients.delete(conn.socket);
+    connection.on("close", () => {
+      clients.delete(connection);
     });
   });
 
@@ -19,7 +19,9 @@ export async function marketWs(app: FastifyInstance) {
     });
 
     for (const client of clients) {
+      if (client.readyState === WebSocket.OPEN) {
         client.send(data);
+      }
     }
   }, 1000);
 }

@@ -7,7 +7,7 @@ A comprehensive RESTful API for a trading platform with authentication, order ma
 Once the server is running, access the interactive Swagger UI documentation at:
 
 ```
-http://localhost:4000/docs
+http://localhost:4000/documentation
 ```
 
 The Swagger UI provides:
@@ -15,6 +15,7 @@ The Swagger UI provides:
 - Request/response schemas
 - Interactive testing interface
 - Authentication support
+- Real-time WebSocket connection details
 
 ## 🚀 Quick Start
 
@@ -40,7 +41,7 @@ npm run dev
 
 5. Visit the API documentation:
 ```
-http://localhost:3000/docs
+http://localhost:4000/documentation
 ```
 
 ## 📋 API Endpoints Overview
@@ -51,7 +52,7 @@ http://localhost:3000/docs
 
 ### Orders
 - `POST /api/v1/order/create` - Place a new order (requires authentication)
-- `GET /api/v1/order/my` - Get all my orders (requires authentication)
+- `GET /api/v1/order/` - Get all my orders (requires authentication)
 - `DELETE /api/v1/order/:orderId` - Cancel an order (requires authentication)
 - `GET /api/v1/order/orderbook/:ticker` - Get order book for a ticker
 
@@ -61,6 +62,12 @@ http://localhost:3000/docs
 ### Market
 - `GET /api/v1/market/prices` - Get all stock prices
 - `GET /api/v1/market/price/:symbol` - Get price for a specific symbol
+
+### Chatbot (AI Trading Assistant)
+- `POST /api/v1/stocky/chat` - Chat with AI trading assistant (requires authentication)
+
+### WebSocket
+- `WS /ws/market` - Real-time market price updates
 
 ---
 
@@ -207,7 +214,7 @@ Authorization: Bearer <token>
 ---
 
 #### 4. Get My Orders
-**GET** `/api/v1/order/my`
+**GET** `/api/v1/order/`
 
 🔒 **Requires Authentication**
 
@@ -342,9 +349,60 @@ GET /api/v1/order/orderbook/AAPL
 
 ---
 
+### Chatbot Endpoints
+
+#### 7. Chat with AI Trading Assistant
+**POST** `/api/v1/stocky/chat`
+
+🔒 **Requires Authentication**
+
+Interact with "Stocky", the AI-powered trading assistant. Ask questions about stocks, market trends, trading strategies, portfolio analysis, and receive intelligent responses.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "userMessage": "What are the top performing stocks today?"
+}
+```
+
+**Field Descriptions:**
+- `userMessage` (string, required): Your question or message to the chatbot
+
+**Response (200):**
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "chatbotResponse": "Based on current market trends, technology stocks like AAPL and MSFT are showing strong performance. AAPL is up 2.5% today at $150.50, while MSFT has gained 1.8% trading at $350.25. These stocks have consistent trading volumes and positive momentum."
+  },
+  "message": "message sent and response received",
+  "success": true
+}
+```
+
+**Example Questions You Can Ask:**
+- "What is the current price of AAPL?"
+- "Should I buy or sell Tesla stock?"
+- "What's my portfolio performance?"
+- "Explain the difference between LIMIT and MARKET orders"
+- "What are the risks of trading?"
+- "Show me stocks under $100"
+- "What's the market sentiment today?"
+
+**Error Responses:**
+- `400` - Bad request (no message provided)
+- `401` - Unauthorized (invalid or missing token)
+
+---
+
 ### Portfolio Endpoints
 
-#### 7. Get Portfolio
+#### 8. Get Portfolio
 **GET** `/api/v1/portfolio/`
 
 🔒 **Requires Authentication**
@@ -403,7 +461,7 @@ Authorization: Bearer <token>
 
 ### Market Endpoints
 
-#### 8. Get All Prices
+#### 9. Get All Prices
 **GET** `/api/v1/market/prices`
 
 Retrieve current prices for all available stocks.
@@ -421,7 +479,7 @@ Retrieve current prices for all available stocks.
 
 ---
 
-#### 9. Get Price by Symbol
+#### 10. Get Price by Symbol
 **GET** `/api/v1/market/price/:symbol`
 
 Retrieve the current price for a specific stock symbol.
@@ -463,7 +521,8 @@ The token is also stored in a cookie named `accessToken` and will be automatical
 
 The following endpoints require authentication:
 - All Order endpoints except `/order/orderbook/:ticker`
-- Portfolio endpoint
+- Portfolio endpoint (`/portfolio/`)
+- Chatbot endpoint (`/stocky/chat`)
 
 ---
 
@@ -564,7 +623,7 @@ PORT=3000
 ## 🧪 Testing the API
 
 ### Using Swagger UI
-The easiest way to test the API is through the Swagger UI at `http://localhost:4000/docs`.
+The easiest way to test the API is through the Swagger UI at `http://localhost:4000/documentation`.
 
 1. Visit the Swagger docs
 2. Click "Authorize" button
@@ -615,20 +674,29 @@ POST /api/v1/auth/login
 # Save the accessToken from response
 ```
 
-2. **Check Market Prices**
+2. **Ask Chatbot for Advice** (Optional)
+```bash
+POST /api/v1/stocky/chat
+{
+  "userMessage": "What stocks should I consider buying today?"
+}
+# Get AI-powered recommendations
+```
+
+3. **Check Market Prices**
 ```bash
 GET /api/v1/market/prices
 # or for specific stock
 GET /api/v1/market/price/AAPL
 ```
 
-3. **View Portfolio**
+4. **View Portfolio**
 ```bash
 GET /api/v1/portfolio/
 # Check wallet balance and current holdings
 ```
 
-4. **Place Buy Order**
+5. **Place Buy Order**
 ```bash
 POST /api/v1/order/create
 {
@@ -640,24 +708,30 @@ POST /api/v1/order/create
 }
 ```
 
-5. **Check Order Status**
+6. **Check Order Status**
 ```bash
-GET /api/v1/order/my
+GET /api/v1/order/
 # View all your orders and their status
 ```
 
-6. **View Order Book**
+7. **View Order Book**
 ```bash
 GET /api/v1/order/orderbook/AAPL
 # See all bids and asks for AAPL
 ```
 
-7. **Cancel Order (if needed)**
+8. **Connect to Real-Time Prices** (Optional)
+```bash
+# Connect WebSocket client to ws://localhost:4000/ws/market
+# Receive live price updates every second
+```
+
+9. **Cancel Order (if needed)**
 ```bash
 DELETE /api/v1/order/{orderId}
 ```
 
-8. **View Updated Portfolio**
+10. **View Updated Portfolio**
 ```bash
 GET /api/v1/portfolio/
 # Check updated holdings after trades execute
@@ -665,11 +739,143 @@ GET /api/v1/portfolio/
 
 ---
 
+## 🔌 WebSocket Connection
+
+### Real-Time Market Data
+
+Connect to the WebSocket endpoint to receive real-time price updates for all stocks.
+
+**WebSocket URL:**
+```
+ws://localhost:4000/ws/market
+```
+
+### Connection Example
+
+**JavaScript/Browser:**
+```javascript
+const ws = new WebSocket('ws://localhost:4000/ws/market');
+
+ws.onopen = () => {
+  console.log('Connected to market data stream');
+};
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Price update:', data);
+  // data.type === 'PRICE_UPDATE'
+  // data.prices = { AAPL: 150.50, GOOGL: 2800.75, ... }
+};
+
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};
+
+ws.onclose = () => {
+  console.log('Disconnected from market data stream');
+};
+```
+
+**Node.js:**
+```javascript
+const WebSocket = require('ws');
+
+const ws = new WebSocket('ws://localhost:4000/ws/market');
+
+ws.on('open', () => {
+  console.log('Connected to market data stream');
+});
+
+ws.on('message', (data) => {
+  const message = JSON.parse(data);
+  console.log('Price update:', message.prices);
+});
+
+ws.on('error', (error) => {
+  console.error('WebSocket error:', error);
+});
+
+ws.on('close', () => {
+  console.log('Disconnected from market data stream');
+});
+```
+
+**Python:**
+```python
+import websocket
+import json
+
+def on_message(ws, message):
+    data = json.loads(message)
+    print(f"Price update: {data['prices']}")
+
+def on_error(ws, error):
+    print(f"Error: {error}")
+
+def on_close(ws, close_status_code, close_msg):
+    print("Connection closed")
+
+def on_open(ws):
+    print("Connected to market data stream")
+
+ws = websocket.WebSocketApp(
+    "ws://localhost:4000/ws/market",
+    on_message=on_message,
+    on_error=on_error,
+    on_close=on_close,
+    on_open=on_open
+)
+
+ws.run_forever()
+```
+
+### Message Format
+
+The WebSocket server broadcasts price updates every second in the following format:
+
+```json
+{
+  "type": "PRICE_UPDATE",
+  "prices": {
+    "AAPL": 150.52,
+    "GOOGL": 2801.30,
+    "MSFT": 350.45,
+    "AMZN": 3401.25,
+    "TSLA": 246.10
+  }
+}
+```
+
+### Features
+
+- ✅ **Real-time Updates**: Prices broadcast every 1 second
+- ✅ **All Stocks**: Receives updates for all available stocks simultaneously
+- ✅ **No Authentication Required**: Public market data stream
+- ✅ **Auto-reconnect**: Client should implement reconnection logic
+- ✅ **Low Latency**: Direct WebSocket connection for minimal delay
+
+### Use Cases
+
+1. **Live Price Displays**: Build real-time dashboards showing current stock prices
+2. **Trading Bots**: Receive instant price updates for algorithmic trading
+3. **Price Alerts**: Monitor specific stocks and trigger alerts on price changes
+4. **Market Analysis**: Collect real-time data for technical analysis
+5. **Order Book Updates**: Combined with order book API for complete market view
+
+### Notes
+
+- The connection stays open until explicitly closed by client or server
+- No messages need to be sent from client - data is broadcast automatically
+- Prices are simulated in development environment
+- Consider implementing exponential backoff for reconnection attempts
+
+---
+
 ## 📚 Additional Resources
 
-- **Swagger Documentation**: `http://localhost:4000/docs`
+- **Swagger Documentation**: `http://localhost:4000/documentation`
 - **Prisma Studio**: Run `npm run prisma:studio` to open database GUI
-- **WebSocket**: Real-time market data available via WebSocket connection
+- **WebSocket Endpoint**: `ws://localhost:4000/ws/market` for real-time market data
 
 ---
 
