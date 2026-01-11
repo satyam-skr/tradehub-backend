@@ -882,14 +882,14 @@ The WebSocket server broadcasts price updates every second in the following form
 ## 🤝 Support
 
 For issues or questions:
-- Email: bt23cse082@iiitn.ac.in
+- Raise an Issue or PR
 - Check the interactive Swagger docs for real-time testing
 
 ---
 
 ## 📄 License
 
-ISC
+MIT
 
 ---
 
