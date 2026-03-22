@@ -235,7 +235,7 @@ const getMyOrdersService = async (userId: string) => {
 }
 
 
-const deleteOrderByIdService = async (orderId: string) => {
+const deleteOrderByIdService = async (orderId: string, userId: string) => {
     try {
         const result = await prisma.$transaction(async (tx) => {
             const order = await tx.order.findUnique({
@@ -251,12 +251,17 @@ const deleteOrderByIdService = async (orderId: string) => {
                 throw new ApiError(400, "order is already cancelled")
             }
 
-            const remainingQty = order.quantity - order.filledQuantity;
             const user = await tx.user.findUnique({
                 where: { id: order.userId }
             });
             if (!user) throw new ApiError(404, "user not found");
-
+            
+            if(user.id != userId){
+                throw new ApiError(402, "you are not permitted to do this action");
+            }
+            
+            const remainingQty = order.quantity - order.filledQuantity;
+            
             if (order.side == "SELL") {
                 await tx.stockHolding.update({
                     where: {

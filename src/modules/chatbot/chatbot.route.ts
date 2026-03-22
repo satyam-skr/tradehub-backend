@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { chatController } from "./chatbot.controller"
 
-export async function orderRoutes(app: FastifyInstance) {
+export async function chatbotRoute(app: FastifyInstance) {
     app.post("/chat", {
         onRequest: [app.authenticate],
         schema: {
@@ -58,4 +58,4 @@ export async function orderRoutes(app: FastifyInstance) {
     
 }
 
-export default orderRoutes
+export default chatbotRoute

@@ -17,9 +17,9 @@ const matchBuyOrder = async (orderId: string) => {
       where: {
         symbol: buyOrder.symbol,
         side: "SELL",
-        status: {in: ["OPEN", "PARTIAL"]},
+        status: { in: ["OPEN", "PARTIAL"] },
         price: { lte: buyOrder.price! },
-        userId: {not:buyOrder.userId}
+        userId: { not: buyOrder.userId }
       },
       orderBy: [
         { price: "asc" },   // cheapestFirst
@@ -122,7 +122,7 @@ const matchBuyOrder = async (orderId: string) => {
       else {
         newBuyersAvgPrice = tradePrice.toNumber() / tradedQty;
       }
-      
+
       //update buyer's holdings
       const buyerHolding = await tx.stockHolding.upsert({
         where: {
@@ -169,7 +169,7 @@ const matchSellOrder = async (orderId: string) => {
       where: {
         symbol: sellOrder.symbol,
         side: "BUY",
-        status: "OPEN",
+        status: { in: ["OPEN", "PARTIAL"] },
         price: { gte: sellOrder.price! },
         userId: { not: sellOrder.userId }
       },
@@ -213,7 +213,7 @@ const matchSellOrder = async (orderId: string) => {
         where: { id: buy.id },
         data: {
           filledQuantity: { increment: tradedQty },
-          status: (tradedQty === remainingQty)
+          status: (tradedQty === buyRemaining)
             ? "FILLED"
             : "PARTIAL"
         }
@@ -222,10 +222,14 @@ const matchSellOrder = async (orderId: string) => {
       //4. transfer funds from buyer to seller
       const totalCost = new Prisma.Decimal(tradedPrice).mul(tradedQty);
 
+      const priceDifference = buy.price!.minus(tradedPrice);
+      const extraCost = priceDifference.mul(tradedQty);
+      const totalCostOfSelling = totalCost.add(extraCost);
+
       await tx.wallet.update({
         where: { userId: sellOrder.userId },
         data: {
-          balance: { increment: totalCost }
+          balance: { increment: totalCostOfSelling }
         }
       });
 
@@ -251,6 +255,28 @@ const matchSellOrder = async (orderId: string) => {
         }
       });
 
+      const initialBuyerHolding = await tx.stockHolding.findUnique({
+        where: {
+          userId_symbol: {
+            userId: buy.userId,
+            symbol: buy.symbol
+          }
+        }
+      });
+
+      let newBuyersAvgPrice;
+      if (initialBuyerHolding) {
+        const oldQty = initialBuyerHolding.quantity;
+        const oldCost = initialBuyerHolding.avgPrice.mul(oldQty);
+        const newCost = new Prisma.Decimal(tradedPrice).mul(tradedQty);
+
+        const totalQty = oldQty + tradedQty;
+        newBuyersAvgPrice = oldCost.add(newCost).div(totalQty);
+      }
+      else {
+        newBuyersAvgPrice = tradedPrice.toNumber() / tradedQty;
+      }
+
       //update buyers holding
       const buyerHolding = await tx.stockHolding.upsert({
         where: {
@@ -260,12 +286,14 @@ const matchSellOrder = async (orderId: string) => {
           }
         },
         update: {
-          quantity: { increment: tradedQty }
+          quantity: { increment: tradedQty },
+          avgPrice: newBuyersAvgPrice
         },
         create: {
           userId: buy.userId,
           symbol: buy.symbol,
-          quantity: tradedQty
+          quantity: tradedQty,
+          avgPrice: newBuyersAvgPrice
         }
       });
 
@@ -280,12 +308,12 @@ const matchSellOrder = async (orderId: string) => {
 }
 
 const matchMarketBuy = async (orderId: string) => {
-  return await prisma.$transaction( async (tx) => {
+  return await prisma.$transaction(async (tx) => {
     const buyOrder = await tx.order.findUnique({
-      where: {id: orderId}
+      where: { id: orderId }
     });
 
-    if(!buyOrder || buyOrder.status !== "OPEN") return;
+    if (!buyOrder || buyOrder.status !== "OPEN") return;
 
     let remainingQty = buyOrder.quantity - buyOrder.filledQuantity;
 
@@ -293,8 +321,8 @@ const matchMarketBuy = async (orderId: string) => {
       where: {
         symbol: buyOrder.symbol,
         side: "SELL",
-        status: {in: ["OPEN", "PARTIAL"]},
-        userId: {not:buyOrder.userId}
+        status: { in: ["OPEN", "PARTIAL"] },
+        userId: { not: buyOrder.userId }
       },
       orderBy: [
         { price: "asc" },   // cheapestFirst
@@ -311,7 +339,7 @@ const matchMarketBuy = async (orderId: string) => {
       const totalTradeCost = new Prisma.Decimal(tradePrice).mul(tradedQty);
 
       const wallet = await tx.wallet.findUnique({
-        where: { userId : buyOrder.userId }
+        where: { userId: buyOrder.userId }
       })
 
       if (wallet!.balance.lt(totalTradeCost)) {
@@ -347,10 +375,6 @@ const matchMarketBuy = async (orderId: string) => {
             tradedQty === sellRemaining ? "FILLED" : "PARTIAL"
         }
       });
-
-      // Release unused locked balance
-      const priceDifference = buyOrder.price!.minus(tradePrice);
-      const savedAmount = priceDifference.mul(tradedQty);
 
       await tx.wallet.update({
         where: { userId: buyOrder.userId },
@@ -402,7 +426,7 @@ const matchMarketBuy = async (orderId: string) => {
       else {
         newBuyersAvgPrice = tradePrice.toNumber() / tradedQty;
       }
-      
+
       //update buyer's holdings
       const buyerHolding = await tx.stockHolding.upsert({
         where: {
@@ -437,7 +461,7 @@ const matchMarketBuy = async (orderId: string) => {
 
 
 const matchMarketSell = async (orderId: string) => {
-  return await prisma.$transaction( async (tx) => {
+  return await prisma.$transaction(async (tx) => {
     const sellOrder = await tx.order.findUnique({
       where: { id: orderId }
     });
@@ -450,7 +474,7 @@ const matchMarketSell = async (orderId: string) => {
       where: {
         symbol: sellOrder.symbol,
         side: "BUY",
-        status: "OPEN",
+        status: { in: ["OPEN", "PARTIAL"] },
         userId: { not: sellOrder.userId }
       },
       orderBy: [
@@ -531,6 +555,30 @@ const matchMarketSell = async (orderId: string) => {
         }
       });
 
+      const initialBuyerHolding = await tx.stockHolding.findUnique({
+        where: {
+          userId_symbol: {
+            userId: buy.userId,
+            symbol: buy.symbol
+          }
+        }
+      });
+
+      let newBuyersAvgPrice;
+      if (initialBuyerHolding) {
+        const oldQty = initialBuyerHolding.quantity;
+        const oldCost = initialBuyerHolding.avgPrice.mul(oldQty);
+        const newCost = new Prisma.Decimal(tradedPrice).mul(tradedQty);
+
+        const totalQty = oldQty + tradedQty;
+        newBuyersAvgPrice = oldCost.add(newCost).div(totalQty);
+      }
+      else {
+        newBuyersAvgPrice = tradedPrice.toNumber() / tradedQty;
+      }
+
+
+
       //update buyers holding
       const buyerHolding = await tx.stockHolding.upsert({
         where: {
@@ -540,12 +588,14 @@ const matchMarketSell = async (orderId: string) => {
           }
         },
         update: {
-          quantity: { increment: tradedQty }
+          quantity: { increment: tradedQty },
+          avgPrice: newBuyersAvgPrice
         },
         create: {
           userId: buy.userId,
           symbol: buy.symbol,
-          quantity: tradedQty
+          quantity: tradedQty,
+          avgPrice: newBuyersAvgPrice
         }
       });
 

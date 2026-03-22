@@ -79,7 +79,7 @@ const deleteOrderById = async (
 
     try {
         const {orderId} = req.params as any;
-        await deleteOrderByIdService(orderId);
+        await deleteOrderByIdService(orderId, userId);
     
     
         return rep
