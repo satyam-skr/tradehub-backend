@@ -2,10 +2,10 @@ import Fastify from "fastify";
 import jwt from "@fastify/jwt";
 import cors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
-import { env } from "./config/env";
-import authenticatePlugin from "./plugins/authenticate";
+import { env } from "./config/env.js";
+import authenticatePlugin from "./plugins/authenticate.js";
 import websocket from "@fastify/websocket";
-import { marketWs } from "./modules/market/market.ws";
+import { marketWs } from "./modules/market/market.ws.js";
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui'
 import rateLimit from "@fastify/rate-limit";
@@ -91,14 +91,16 @@ app.register(authenticatePlugin);
 
 
 //routes import
-import authRoutes from "./modules/auth/auth.route";
-import orderRoutes from "./modules/order/order.route";
-import portfolioRoutes from "./modules/portfolio/portfolio.route";
-import marketRoutes from "./modules/market/market.routes";
-import chatbotRoutes from "./modules/chatbot/chatbot.route"
+import { basicRoutes } from "./config/basicRoutes.js";
+import authRoutes from "./modules/auth/auth.route.js";
+import orderRoutes from "./modules/order/order.route.js";
+import portfolioRoutes from "./modules/portfolio/portfolio.route.js";
+import marketRoutes from "./modules/market/market.routes.js";
+import chatbotRoutes from "./modules/chatbot/chatbot.route.js"
 
 
 //routes use
+app.register(basicRoutes, {prefix: ""});
 app.register(authRoutes, { prefix: "/api/v1/auth" });
 app.register(orderRoutes, { prefix: "/api/v1/order", })
 app.register(portfolioRoutes, { prefix: "/api/v1/portfolio" })

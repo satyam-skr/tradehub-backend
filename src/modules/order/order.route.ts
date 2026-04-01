@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { placeOrder, getMyOrders, deleteOrderById, getOrderBook } from "./order.controller"
+import { placeOrder, getMyOrders, deleteOrderById, getOrderBook } from "./order.controller.js"
 
 export async function orderRoutes(app: FastifyInstance) {
 

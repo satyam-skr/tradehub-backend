@@ -1,6 +1,6 @@
-import { prisma } from "../../db/prisma";
+import { prisma } from "../../db/prisma.js";
 import { Prisma } from "../../generated/prisma";
-import { ApiError } from "../../utils/ApiError";
+import { ApiError } from "../../utils/ApiError.js";
 
 const matchBuyOrder = async (orderId: string) => {
   return await prisma.$transaction(async (tx) => {

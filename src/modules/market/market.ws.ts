@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { priceStore } from "./priceStore";
+import { priceStore } from "./priceStore.js";
 
 const clients = new Set<any>();
 

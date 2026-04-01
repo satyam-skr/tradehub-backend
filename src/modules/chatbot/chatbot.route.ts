@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { chatController } from "./chatbot.controller"
+import { chatController } from "./chatbot.controller.js"
 
 export async function chatbotRoute(app: FastifyInstance) {
     app.post("/chat", {

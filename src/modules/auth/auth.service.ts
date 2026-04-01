@@ -1,7 +1,7 @@
-import { prisma } from "../../db/prisma";
+import { prisma } from "../../db/prisma.js";
 import bcrypt from "bcrypt";
-import { CreateUserInput, LoginType } from "../../validators/auth.schema";
-import { ApiError } from "../../utils/ApiError";
+import { CreateUserInput, LoginType } from "../../validators/auth.schema.js";
+import { ApiError } from "../../utils/ApiError.js";
 
 const SALT_ROUNDS = 10;
 

@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify"
-import { getPortfolioService } from "./portfolio.service"
-import { ApiError } from "../../utils/ApiError";
-import { ApiResponse } from "../../utils/ApiResponse";
+import { getPortfolioService } from "./portfolio.service.js"
+import { ApiError } from "../../utils/ApiError.js";
+import { ApiResponse } from "../../utils/ApiResponse.js";
 
 const getPortfolio = async (
     req : FastifyRequest,

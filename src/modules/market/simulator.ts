@@ -1,4 +1,4 @@
-import { priceStore } from "./priceStore";
+import { priceStore } from "./priceStore.js";
 
 const symbols = ["AAPL", "MSFT", "GOOG", "AMZN"];
 

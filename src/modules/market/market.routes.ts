@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { priceStore } from "./priceStore";
+import { priceStore } from "./priceStore.js";
 
 export async function marketRoutes(app: FastifyInstance) {
     app.get("/prices", {

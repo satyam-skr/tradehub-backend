@@ -1,5 +1,5 @@
-import {env} from '../config/env'
-import { prisma } from '../db/prisma';
+import {env} from '../config/env.js'
+import { prisma } from '../db/prisma.js';
 
 const stocks = [
     { symbol: 'AAPL', name: 'Apple Inc.', exchange: 150.25 },

@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { OrderCreateType, PlaceOrderType, placeOrderSchema } from "../../validators/order.schema";
-import { ApiError } from "../../utils/ApiError";
-import { placeOrderService, getMyOrdersService, deleteOrderByIdService, getOrderBookService } from "./order.service";
-import { ApiResponse } from "../../utils/ApiResponse";
+import { OrderCreateType, PlaceOrderType, placeOrderSchema } from "../../validators/order.schema.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { placeOrderService, getMyOrdersService, deleteOrderByIdService, getOrderBookService } from "./order.service.js";
+import { ApiResponse } from "../../utils/ApiResponse.js";
 
 const placeOrder = async (
     req: FastifyRequest<{ Body: PlaceOrderType }>,

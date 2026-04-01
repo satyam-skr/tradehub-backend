@@ -1,9 +1,9 @@
-import { prisma } from "../../db/prisma";
-import { ApiError } from "../../utils/ApiError";
-import { OrderCreateType } from "../../validators/order.schema";
+import { prisma } from "../../db/prisma.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { OrderCreateType } from "../../validators/order.schema.js";
 import { Decimal } from "@prisma/client/runtime/index-browser";
 import { OrderSide, OrderType } from "../../generated/prisma";
-import { matchBuyOrder, matchSellOrder, matchMarketBuy, matchMarketSell } from "../matchEngine/matchEngine";
+import { matchBuyOrder, matchSellOrder, matchMarketBuy, matchMarketSell } from "../matchEngine/matchEngine.js";
 
 
 const placeOrderService = async (data: OrderCreateType) => {

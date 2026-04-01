@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
-import { env } from "../../config/env";
-import { SYSTEM_PROMPT } from "./chatbot.prompt";
+import { env } from "../../config/env.js";
+import { SYSTEM_PROMPT } from "./chatbot.prompt.js";
 
 const ai = new GoogleGenAI({
     apiKey: env.GEMINI_API_KEY

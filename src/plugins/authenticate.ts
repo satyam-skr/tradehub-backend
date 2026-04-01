@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { ApiError } from "../utils/ApiError";
+import { ApiError } from "../utils/ApiError.js";
 import fp from "fastify-plugin";
 
 const authenticate: FastifyPluginAsync = async (app) => {

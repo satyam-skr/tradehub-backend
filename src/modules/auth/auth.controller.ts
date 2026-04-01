@@ -1,10 +1,10 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { signupSchema, SignupBody, LoginType, loginSchema } from "../../validators/auth.schema";
-import { createUserService, loginUserService } from "./auth.service";
-import { createAccessToken } from "../../utils/RefreshAndAccessToken";
-import { ApiError } from "../../utils/ApiError";
-import { ApiResponse } from "../../utils/ApiResponse";
-import { prisma } from "../../db/prisma";
+import { signupSchema, SignupBody, LoginType, loginSchema } from "../../validators/auth.schema.js";
+import { createUserService, loginUserService } from "./auth.service.js";
+import { createAccessToken } from "../../utils/RefreshAndAccessToken.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { ApiResponse } from "../../utils/ApiResponse.js";
+import { prisma } from "../../db/prisma.js";
 
 
 const createUser = async (

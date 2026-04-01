@@ -1,6 +1,6 @@
-import app from './app';
-import {env} from './config/env'
-import { startMarketSimulator } from "./modules/market/simulator";
+import app from './app.js';
+import {env} from './config/env.js'
+import { startMarketSimulator } from "./modules/market/simulator.js";
 
 startMarketSimulator();
 const start = async () => {

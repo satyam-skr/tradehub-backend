@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { getPortfolio } from "./portfolio.controller";
+import { getPortfolio } from "./portfolio.controller.js";
 
 
 export async function portfolioRoutes(app: FastifyInstance) {
