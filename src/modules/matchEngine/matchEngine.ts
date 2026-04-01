@@ -1,5 +1,5 @@
 import { prisma } from "../../db/prisma.js";
-import { Prisma } from "../../generated/prisma";
+import { Prisma } from "../../generated/prisma/index.js";
 import { ApiError } from "../../utils/ApiError.js";
 
 const matchBuyOrder = async (orderId: string) => {

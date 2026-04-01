@@ -2,7 +2,7 @@ import { prisma } from "../../db/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { OrderCreateType } from "../../validators/order.schema.js";
 import { Decimal } from "@prisma/client/runtime/index-browser";
-import { OrderSide, OrderType } from "../../generated/prisma";
+import { OrderSide, OrderType } from "../../generated/prisma/index.js";
 import { matchBuyOrder, matchSellOrder, matchMarketBuy, matchMarketSell } from "../matchEngine/matchEngine.js";
 
 
